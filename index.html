@@ -3,52 +3,185 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Search by Email</title>
+    <title>Elite</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
       body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        max-width: 600px;
+        font-family: "Inter", sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: rgb(251, 250, 249);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        text-align: center;
       }
+
+      .container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      form {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto 20px auto;
+      }
+
+      label {
+        font-size: 16px;
+        text-align: left;
+        display: block;
+        margin-bottom: 5px;
+      }
+
       input,
       button {
         padding: 10px;
-        margin: 5px 0;
         font-size: 16px;
+        border-radius: 16px;
         width: 100%;
+        box-sizing: border-box;
       }
+
+      input {
+        border: 1px solid #191818;
+        margin: 10px 0;
+      }
+
+      input::placeholder {
+        font-family: "Inter", sans-serif;
+      }
+
       button {
-        background-color: #4caf50;
+        background-color: rgb(191, 68, 8);
         color: white;
-        border: none;
+        border: 1px solid rgb(191, 68, 8);
         cursor: pointer;
+        margin-top: 10px;
       }
+
       button:hover {
-        background-color: #45a049;
+        background-color: rgb(174, 61, 7);
+        border-color: rgb(174, 61, 7);
       }
+
+      h1 {
+        margin-bottom: 30px;
+      }
+
       .result {
-        margin-top: 20px;
-        padding: 10px;
-        border: 1px solid #ddd;
+        display: none;
+        text-align: left;
+        width: 100%;
+        max-width: 400px;
+        padding: 20px;
         background: #f9f9f9;
+        margin: 20px auto 0 auto;
+      }
+
+      .projects-text {
+        margin-bottom: 10px;
+      }
+
+      .projects-text .see-more {
+        color: rgb(191, 68, 8);
+        cursor: pointer;
+        font-weight: bold;
+        text-decoration: underline;
+        display: inline-block;
+        margin-top: 10px;
+      }
+
+      .dialog {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .dialog-content {
+        background: white;
+        text-align: left;
+        padding: 20px;
+        width: 100%;
+        max-width: 500px;
+        border-radius: 16px;
+        max-height: 80vh;
+        overflow-y: auto;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      .close-dialog {
+        position: fixed; /* Changed to fixed */
+        top: 20px; /* Adjusted position */
+        left: 20px; /* Adjusted position */
+        font-size: 32px;
+        color: rgb(191, 68, 8);
+        cursor: pointer;
+        z-index: 1001; /* Ensure it's above dialog content */
+      }
+
+      .close-dialog:hover {
+        color: rgb(174, 61, 7);
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          padding: 0 15px;
+        }
+
+        .result {
+          padding: 15px;
+        }
+
+        .dialog-content {
+          padding: 15px;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>Search User by Email</h1>
-    <form id="searchForm">
-      <label for="email">Enter Email:</label>
-      <input type="email" id="email" placeholder="Enter email" required />
-      <button type="submit">Search</button>
-    </form>
-    <div id="result" class="result" style="display: none">
-      <h2>Result:</h2>
-      <p><strong>Email:</strong> <span id="emailResult"></span></p>
-      <p><strong>Display Name:</strong> <span id="displayNameResult"></span></p>
-      <p><strong>Facebook URL:</strong> <span id="facebookUrlResult"></span></p>
-      <p>
-        <strong>Projects Text:</strong> <span id="projectsTextResult"></span>
-      </p>
+    <div class="container">
+      <h1>Elite</h1>
+      <form id="searchForm">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="Nhập email" required />
+        <button type="submit">Tìm kiếm</button>
+      </form>
+      <div id="result" class="result">
+        <h2>Kết quả</h2>
+        <p><strong>Email:</strong> <span id="emailResult"></span></p>
+        <p>
+          <strong>Tên hiển thị:</strong> <span id="displayNameResult"></span>
+        </p>
+        <p>
+          <strong>Link Facebook:</strong> <span id="facebookUrlResult"></span>
+        </p>
+        <p><strong>Dự án:</strong></p>
+        <div id="projectsTextResult" class="projects-text"></div>
+      </div>
+    </div>
+
+    <div class="dialog" id="dialog">
+      <div class="dialog-content">
+        <span class="close-dialog" id="closeDialog">&times;</span>
+        <h2>Dự án:</h2>
+        <div id="fullProjectsText"></div>
+      </div>
     </div>
 
     <script>
@@ -58,6 +191,9 @@
       const displayNameResult = document.getElementById("displayNameResult");
       const facebookUrlResult = document.getElementById("facebookUrlResult");
       const projectsTextResult = document.getElementById("projectsTextResult");
+      const dialog = document.getElementById("dialog");
+      const closeDialog = document.getElementById("closeDialog");
+      const fullProjectsText = document.getElementById("fullProjectsText");
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -75,10 +211,26 @@
             const user = data.data.user;
             const supportInfo = JSON.parse(user.support_info || "{}");
 
-            emailResult.textContent = user.email || "N/A";
-            displayNameResult.textContent = user.display_name || "N/A";
-            facebookUrlResult.textContent = supportInfo.facebook_url || "N/A";
-            projectsTextResult.textContent = data.data.projects_text || "N/A";
+            emailResult.textContent = user.email || "Không có";
+            displayNameResult.textContent = user.display_name || "Không có";
+            facebookUrlResult.textContent =
+              supportInfo.facebook_url || "Không có";
+
+            const projectsText = data.data.projects_text || "Không có";
+            const projectsArray = projectsText.split("<br/>");
+
+            if (projectsArray.length > 10) {
+              const truncatedText = projectsArray.slice(0, 10).join("<br/>");
+              projectsTextResult.innerHTML = `${truncatedText} <span class="see-more">[See more]</span>`;
+
+              const seeMoreButton = document.querySelector(".see-more");
+              seeMoreButton.addEventListener("click", () => {
+                fullProjectsText.innerHTML = projectsArray.join("<br/>");
+                dialog.style.display = "flex";
+              });
+            } else {
+              projectsTextResult.innerHTML = projectsArray.join("<br/>");
+            }
 
             resultDiv.style.display = "block";
           } else {
@@ -89,6 +241,10 @@
           console.error("Error fetching data:", error);
           alert("Failed to fetch data. Please try again.");
         }
+      });
+
+      closeDialog.addEventListener("click", () => {
+        dialog.style.display = "none";
       });
     </script>
   </body>
