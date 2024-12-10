@@ -113,6 +113,7 @@
       }
 
       .dialog-content {
+        position: relative;
         background: white;
         text-align: left;
         padding: 20px;
@@ -121,22 +122,22 @@
         border-radius: 16px;
         max-height: 80vh;
         overflow-y: auto;
-        margin: 0 auto;
-        position: relative;
+        scrollbar-width: none;
+      }
+
+      .dialog-content::-webkit-scrollbar {
+        display: none;
       }
 
       .close-dialog {
-        position: fixed; /* Changed to fixed */
-        top: 20px; /* Adjusted position */
-        left: 20px; /* Adjusted position */
+        position: fixed;
+        top: 30px;
+        left: calc(50% - 250px - 20px);
         font-size: 32px;
         color: rgb(191, 68, 8);
         cursor: pointer;
-        z-index: 1001; /* Ensure it's above dialog content */
-      }
-
-      .close-dialog:hover {
-        color: rgb(174, 61, 7);
+        z-index: 1001;
+        display: none;
       }
 
       @media (max-width: 480px) {
@@ -165,24 +166,26 @@
       <div id="result" class="result">
         <h2>Kết quả</h2>
         <p><strong>Email:</strong> <span id="emailResult"></span></p>
-        <p>
+        <p id="displayNameContainer" style="display: none">
           <strong>Tên hiển thị:</strong> <span id="displayNameResult"></span>
         </p>
-        <p>
+        <p id="facebookLinkContainer" style="display: none">
           <strong>Link Facebook:</strong> <span id="facebookUrlResult"></span>
         </p>
-        <p><strong>Dự án:</strong></p>
+        <p id="projectsContainer" style="display: none">
+          <strong>Dự án:</strong>
+        </p>
         <div id="projectsTextResult" class="projects-text"></div>
       </div>
     </div>
 
     <div class="dialog" id="dialog">
       <div class="dialog-content">
-        <span class="close-dialog" id="closeDialog">&times;</span>
         <h2>Dự án:</h2>
         <div id="fullProjectsText"></div>
       </div>
     </div>
+    <span class="close-dialog" id="closeDialog">&times;</span>
 
     <script>
       const form = document.getElementById("searchForm");
@@ -195,9 +198,27 @@
       const closeDialog = document.getElementById("closeDialog");
       const fullProjectsText = document.getElementById("fullProjectsText");
 
+      function showDialog() {
+        dialog.style.display = "flex";
+        closeDialog.style.display = "block";
+      }
+
+      function hideDialog() {
+        dialog.style.display = "none";
+        closeDialog.style.display = "none";
+      }
+
+      closeDialog.addEventListener("click", hideDialog);
+
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const email = document.getElementById("email").value;
+
+        emailResult.textContent = "";
+        displayNameResult.textContent = "";
+        facebookUrlResult.textContent = "";
+        projectsTextResult.innerHTML = "";
+        resultDiv.style.display = "none";
 
         try {
           const response = await fetch(
@@ -216,35 +237,55 @@
             facebookUrlResult.textContent =
               supportInfo.facebook_url || "Không có";
 
+            document.getElementById("displayNameContainer").style.display =
+              "block";
+            document.getElementById("facebookLinkContainer").style.display =
+              "block";
+
             const projectsText = data.data.projects_text || "Không có";
             const projectsArray = projectsText.split("<br/>");
 
-            if (projectsArray.length > 10) {
-              const truncatedText = projectsArray.slice(0, 10).join("<br/>");
-              projectsTextResult.innerHTML = `${truncatedText} <span class="see-more">[See more]</span>`;
+            if (projectsArray.length > 0) {
+              document.getElementById("projectsContainer").style.display =
+                "block";
+              if (projectsArray.length > 10) {
+                const truncatedText = projectsArray.slice(0, 10).join("<br/>");
+                projectsTextResult.innerHTML = `${truncatedText} <span class="see-more">[See more]</span>`;
 
-              const seeMoreButton = document.querySelector(".see-more");
-              seeMoreButton.addEventListener("click", () => {
-                fullProjectsText.innerHTML = projectsArray.join("<br/>");
-                dialog.style.display = "flex";
-              });
+                const seeMoreButton = document.querySelector(".see-more");
+                seeMoreButton.addEventListener("click", () => {
+                  fullProjectsText.innerHTML = projectsArray.join("<br/>");
+                  showDialog();
+                });
+              } else {
+                projectsTextResult.innerHTML = projectsArray.join("<br/>");
+              }
             } else {
-              projectsTextResult.innerHTML = projectsArray.join("<br/>");
+              document.getElementById("projectsContainer").style.display =
+                "none";
             }
 
             resultDiv.style.display = "block";
           } else {
-            alert("No data found or an error occurred!");
-            resultDiv.style.display = "none";
+            emailResult.textContent = "Không tìm thấy người dùng.";
+            document.getElementById("displayNameContainer").style.display =
+              "none";
+            document.getElementById("facebookLinkContainer").style.display =
+              "none";
+            document.getElementById("projectsContainer").style.display = "none";
+            projectsTextResult.innerHTML = "";
+            resultDiv.style.display = "block";
           }
         } catch (error) {
-          console.error("Error fetching data:", error);
-          alert("Failed to fetch data. Please try again.");
+          emailResult.textContent = "Không tìm thấy người dùng.";
+          document.getElementById("displayNameContainer").style.display =
+            "none";
+          document.getElementById("facebookLinkContainer").style.display =
+            "none";
+          document.getElementById("projectsContainer").style.display = "none";
+          projectsTextResult.innerHTML = "";
+          resultDiv.style.display = "block";
         }
-      });
-
-      closeDialog.addEventListener("click", () => {
-        dialog.style.display = "none";
       });
     </script>
   </body>
