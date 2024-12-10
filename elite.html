@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Search by Email</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        max-width: 600px;
+      }
+      input,
+      button {
+        padding: 10px;
+        margin: 5px 0;
+        font-size: 16px;
+        width: 100%;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        background: #f9f9f9;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Search User by Email</h1>
+    <form id="searchForm">
+      <label for="email">Enter Email:</label>
+      <input type="email" id="email" placeholder="Enter email" required />
+      <button type="submit">Search</button>
+    </form>
+    <div id="result" class="result" style="display: none">
+      <h2>Result:</h2>
+      <p><strong>Email:</strong> <span id="emailResult"></span></p>
+      <p><strong>Display Name:</strong> <span id="displayNameResult"></span></p>
+      <p><strong>Facebook URL:</strong> <span id="facebookUrlResult"></span></p>
+      <p>
+        <strong>Projects Text:</strong> <span id="projectsTextResult"></span>
+      </p>
+    </div>
+
+    <script>
+      const form = document.getElementById("searchForm");
+      const resultDiv = document.getElementById("result");
+      const emailResult = document.getElementById("emailResult");
+      const displayNameResult = document.getElementById("displayNameResult");
+      const facebookUrlResult = document.getElementById("facebookUrlResult");
+      const projectsTextResult = document.getElementById("projectsTextResult");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const email = document.getElementById("email").value;
+
+        try {
+          const response = await fetch(
+            `https://api.giaiphapmmo.vn/api/client/business-extension/search-by-facebook?facebook_path_or_email=${encodeURIComponent(
+              email
+            )}`
+          );
+          const data = await response.json();
+
+          if (data.success && data.data.user) {
+            const user = data.data.user;
+            const supportInfo = JSON.parse(user.support_info || "{}");
+
+            emailResult.textContent = user.email || "N/A";
+            displayNameResult.textContent = user.display_name || "N/A";
+            facebookUrlResult.textContent = supportInfo.facebook_url || "N/A";
+            projectsTextResult.textContent = data.data.projects_text || "N/A";
+
+            resultDiv.style.display = "block";
+          } else {
+            alert("No data found or an error occurred!");
+            resultDiv.style.display = "none";
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          alert("Failed to fetch data. Please try again.");
+        }
+      });
+    </script>
+  </body>
+</html>
