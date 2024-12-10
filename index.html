@@ -93,7 +93,6 @@
         color: rgb(191, 68, 8);
         cursor: pointer;
         font-weight: bold;
-        text-decoration: underline;
         display: inline-block;
         margin-top: 10px;
       }
@@ -132,15 +131,22 @@
       .close-dialog {
         position: fixed;
         top: 30px;
+        padding-left: 20px;
+        padding-bottom: 30px;
         left: calc(50% - 250px - 20px);
         font-size: 32px;
         color: rgb(191, 68, 8);
         cursor: pointer;
         z-index: 1001;
-        display: none;
       }
 
       @media (max-width: 480px) {
+        .close-dialog {
+          font-size: 24px; /* Giảm kích thước cho thiết bị di động */
+          top: 20px; /* Điều chỉnh khoảng cách từ trên */
+          left: calc(50% - 200px); /* Điều chỉnh vị trí ngang cho phù hợp */
+        }
+
         .container {
           padding: 0 15px;
         }
@@ -181,11 +187,11 @@
 
     <div class="dialog" id="dialog">
       <div class="dialog-content">
+        <span class="close-dialog" id="closeDialog">&times;</span>
         <h2>Dự án:</h2>
         <div id="fullProjectsText"></div>
       </div>
     </div>
-    <span class="close-dialog" id="closeDialog">&times;</span>
 
     <script>
       const form = document.getElementById("searchForm");
@@ -250,7 +256,7 @@
                 "block";
               if (projectsArray.length > 10) {
                 const truncatedText = projectsArray.slice(0, 10).join("<br/>");
-                projectsTextResult.innerHTML = `${truncatedText} <span class="see-more">[See more]</span>`;
+                projectsTextResult.innerHTML = `${truncatedText} <span class="see-more">Xem thêm...</span>`;
 
                 const seeMoreButton = document.querySelector(".see-more");
                 seeMoreButton.addEventListener("click", () => {
